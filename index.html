@@ -2,13 +2,89 @@
 <html>
 <head>
 	<title>Test</title>
+	<meta charset="UTF-8">
 </head>
 <body>
-	<script type="text/javascript" src="resolver.js"></script>
+	<h1>This is just for test</h1>
+	<div id="example"></div>
+
 	<script type="text/javascript">
-		const resolver = new Resolver("http://127.0.0.1:5000/");
-		resolver.getCollection("/commune");
-		console.log(resolver);
+		let count = 1;
+		const parser = ( domstring) => {
+			let html = new DOMParser().parseFromString( domstring , 'text/html');
+			return html.body.firstChild;
+		};
+
+		const const_add_links = function(tag, target, resolver) {
+			tag.onclick = (event) => {
+				event.preventDefault();
+				resolver.getCollection(target).then(collection => {
+					const ul = document.createElement("ul");
+					tag.parentElement.appendChild(ul);
+					add_list(ul, collection, resolver);
+				});
+			}
+		};
+
+		const add_list = function (ul, collection, resolver) {
+			collection.children.map(member => {
+				if (member.type == "Collection") {
+					const li = parser('<li><a href="' + member.id + '">' + member.title + '</a></li>');
+					li.dataset.id = member.id;
+					const_add_links(
+						li.getElementsByTagName("a")[0],
+						member.id,
+						resolver
+					);
+					ul.appendChild(li);
+				} else {
+					const li = parser('<li>' + member.title +
+							' <a href="#" class="read">Read</a> ' +
+							'<a href="#" class="nav">Navigation</a>' +
+							'</li>');
+
+					li.getElementsByClassName("read")[0].onclick = (event) => {
+						event.preventDefault();
+						const pre = document.createElement("pre");
+						member.getDocument().then(document => {
+							pre.innerText = document.xml;
+						});
+						li.appendChild(pre);
+					};
+					li.getElementsByClassName("nav")[0].onclick = (event) => {
+						event.preventDefault();
+						const pre = document.createElement("pre");
+						member.getNavigation().then(navigationGroup => {
+							li.appendChild(parser("<ul>" +
+									navigationGroup.members.map(navigation => {
+										return "<li>" + navigation.ref.uriRepresentation() + "</li>"
+									}).join(" ") +
+									"</ul>"));
+						});
+						li.appendChild(pre);
+					};
+					ul.appendChild(li);
+				}
+
+			});
+
+		};
+
+		import('./sparrow/dts/resolver.js').then(sparrow_resolver => {
+			const resolver = new sparrow_resolver.dtsResolver("http://127.0.0.1:5000/");
+
+			resolver.getCollection().then(collection => {
+				const main = parser(`<div id="col_` + count + `">
+					<em><a href="` + collection.id + `">` + collection.title + `</a></em>
+					<ul></ul>
+				</div>`);
+
+
+				add_list(main.getElementsByTagName("ul")[0], collection, resolver);
+
+				document.getElementById("example").appendChild(main);
+			});
+		})
 	</script>
 </body>
 </html>
