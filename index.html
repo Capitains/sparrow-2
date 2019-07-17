@@ -71,7 +71,7 @@
 		};
 
 		import('./sparrow/dts/resolver.js').then(sparrow_resolver => {
-			const resolver = new sparrow_resolver.dtsResolver("http://127.0.0.1:5000/");
+			const resolver = new sparrow_resolver.dtsResolver("http://tnah.chartes.psl.eu/2019/dts/");
 
 			resolver.getCollection().then(collection => {
 				const main = parser(`<div id="col_` + count + `">
