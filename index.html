@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test</title>
+</head>
+<body>
+	<script type="text/javascript" src="resolver.js"></script>
+	<script type="text/javascript">
+		const resolver = new Resolver("http://127.0.0.1:5000/");
+		resolver.getCollection("/commune");
+		console.log(resolver);
+	</script>
+</body>
+</html>
